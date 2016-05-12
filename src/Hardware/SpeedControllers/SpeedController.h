@@ -7,7 +7,7 @@ class SpeedController
 {
 private:
     uint _pin;
-    uint _throttleAmount;
+    uint _amount;
     uint _minRange;
     uint _maxRange;
     uint _armingTime;
@@ -18,7 +18,7 @@ private:
 public:
     SpeedController(const uint minRange, const uint maxRange, const uint armingTime, const uint pin);
 
-    void changeThrottle(const float value);
+    void changeSpeed(const float value);
     void tick();
 
 private:

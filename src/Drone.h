@@ -8,7 +8,7 @@ class Drone
 {
     private:
         const LoggerInterface *_logger;
-        SpeedControllerManager _escManager;
+        std::unique_ptr<SpeedControllerManager> _escManager;
 
         // control inputs
         float _throttleLevel;
@@ -20,8 +20,7 @@ class Drone
         Drone(const LoggerInterface *logger);
 
         void setInputLevels(const float throttle, const float yaw, const float pitch, const float roll);
-
-        void run();
+        void tick();
 };
 
 #endif /* EVA_DRONE_H */

@@ -1,4 +1,5 @@
 #include "WifiAgent.h"
+#include "../../Statistics.h"
 
 WifiAgent::WifiAgent(const LoggerInterface *logger) :
         _status(WL_IDLE_STATUS)
@@ -85,8 +86,9 @@ void WifiAgent::handleNetwork()
         BaseMessage msg = createMessage(_buffer, length);
 
         if (msg.type == MSG_HELLO) {
-            _logger->writeln(LOG_INFO, "agent.wifi", "HELLO!!!");
-            //onHelloMessage(client, static_cast<HelloMessage>msg);
+            onHelloMessage(client, static_cast<HelloMessage &>(msg), remoteAddr, remotePort);
+        } else {
+
         }
     }
 }
@@ -95,17 +97,28 @@ BaseMessage WifiAgent::createMessage(const byte buffer[WIFI_BUFFER_LENGTH], cons
 {
     int msgId = buffer[0];
 
-    switch (msgId)
-    {
-        case MSG_HELLO:
+    switch (msgId) {
+        case MSG_HELLO: {
             HelloMessage msg;
 
             if (msg.expectedSize() == length) {
-                memcpy(&msg, buffer, length);
+                memcpy(&msg, &buffer, length);
+                msg.type = buffer[0];
+                msg.capabilities = (buffer[1] << 8) + buffer[2];
+
                 return msg;
             } else {
-                _logger->writeln(LOG_INFO, "agent.wifi", "got hello message of wrong length [%d received, %d expected]", length, msg.expectedSize());
+                _logger->writeln(LOG_WARNING,
+                                 "agent.wifi",
+                                 "got hello message of wrong length [%d received, %d expected]",
+                                 length,
+                                 msg.expectedSize());
             }
+        }
+            break;
+
+        default:
+            _logger->writeln(LOG_WARNING, "agent.wifi", "unknown message");
             break;
     }
 
@@ -113,17 +126,41 @@ BaseMessage WifiAgent::createMessage(const byte buffer[WIFI_BUFFER_LENGTH], cons
     return msg;
 }
 
-void WifiAgent::onHelloMessage(const std::shared_ptr<WifiAgentClient> client, const HelloMessage* msg,
-                               const IPAddress remoteAddr,
-                               const int remotePort)
+void WifiAgent::broadcastFrame(const FrameStatistics statistics)
+{
+    for (auto it(_clients.begin()), ite(_clients.end()); it != ite; ++it) {
+        if ((*it)->isActive() == false) {
+            continue;
+        }
+    }
+}
+
+void WifiAgent::onHelloMessage(const std::shared_ptr<WifiAgentClient> client,
+                               const HelloMessage msg,
+                               IPAddress remoteAddr,
+                               int remotePort)
 {
     if (client != nullptr) {
         client->disconnect(WifiAgentClient::DISCONNECT_REASON_VIOLATED_ME);
     } else {
-        WifiAgentClient* newClient = new WifiAgentClient(this, remoteAddr, remotePort);
+        WifiAgentClient *ptr = new WifiAgentClient(this, remoteAddr, remotePort);
+        std::shared_ptr<WifiAgentClient> newClient = std::shared_ptr<WifiAgentClient>(ptr);
 
-        _clients.push_back(std::shared_ptr<WifiAgentClient>((WifiAgentClient*) newClient));
+        _clients.push_back(newClient);
+        _logger->writeln(LOG_INFO, "agent.wifi", "client connected [%s:%d]", remoteAddr.toString().c_str(), remotePort);
+
+        sendWelcome(newClient);
     }
+}
+
+void WifiAgent::sendWelcome(const std::shared_ptr<WifiAgentClient> client)
+{
+    byte buffer[1];
+    buffer[0] = MSG_WELCOME;
+
+    _socket.beginPacket(client->getAddress(), client->getPort());
+    _socket.write(buffer, sizeof(buffer));
+    _socket.endPacket();
 }
 
 const std::shared_ptr<WifiAgentClient> WifiAgent::findClient(const IPAddress addr, const int port) const

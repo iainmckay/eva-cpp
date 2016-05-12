@@ -13,9 +13,9 @@ void SpeedControllerManager::arm()
     _enabled = true;
 }
 
-void SpeedControllerManager::adjustThrottle(uint index, float amount)
+void SpeedControllerManager::adjustSpeed(uint index, float amount)
 {
-    _speedControllers[index].changeThrottle(amount);
+    _speedControllers[index].changeSpeed(amount);
 }
 
 void SpeedControllerManager::tick()

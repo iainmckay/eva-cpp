@@ -8,10 +8,10 @@ SpeedController::SpeedController(const uint minRange, const uint maxRange, const
     _pin = pin;
 }
 
-void SpeedController::changeThrottle(const float value)
+void SpeedController::changeSpeed(const float value)
 {
     // TODO: warn when amount is outside acceptable range
-    _throttleAmount = constrain(value, 0, 1);
+    _amount = constrain(value, 0, 1);
 }
 
 void SpeedController::tick()
@@ -27,7 +27,7 @@ void SpeedController::tick()
             _armed = true;
         }
     } else {
-        value = map(_throttleAmount);
+        value = map(_amount);
     }
 
     analogWrite(_pin, value);

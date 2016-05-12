@@ -1,62 +1,58 @@
 #include "Drone.h"
 
 Drone::Drone(const LoggerInterface *logger)
+        : _escManager(new SpeedControllerManager())
 {
     _logger = logger;
     _logger->writeln(LOG_INFO, "drone", "attaching 4 speed controllers");
 
-    //_escManager = std::unique_ptr(new SpeedControllerManager(1));
-    //_escManager->attach(0, 16);
-  /*  _escManager->attach(1, 14);
-    _escManager->attach(2, 12);
-    _escManager->attach(3, 13);
-*/
+    //_escManager.attach(0, 16);
+    /*  _escManager.attach(1, 14);
+      _escManager.attach(2, 12);
+      _escManager.attach(3, 13);
+  */
     _logger->writeln(LOG_INFO, "drone", "arming speed controllers");
 
-    //_escManager->arm();
+    _escManager->arm();
 }
 
 void Drone::setInputLevels(const float throttle, const float yaw, const float pitch, const float roll)
 {
-    //_throttleLevel = clip(throttle, 0.0f, 1.0f);
-    //_yawLevel = clip(yaw, 0.0f, 1.0f);
-    //_pitchLevel = clip(pitch, 0.0f, 1.0f);
-    //_rollLevel = clip(roll, 0.0f, 1.0f);
+    _throttleLevel = constrain(throttle, 0.0f, 1.0f);
+    _yawLevel = constrain(yaw, 0.0f, 1.0f);
+    _pitchLevel = constrain(pitch, 0.0f, 1.0f);
+    _rollLevel = constrain(roll, 0.0f, 1.0f);
 }
 
-void Drone::run()
+void Drone::tick()
 {
-    /*if (_initialized == false) {
-     // FIXME: notify when system isn't initialized
-     }
+    /*Debug.Print("Entering running state");
 
-     Debug.Print("Entering running state");
+    Stopwatch stopWatch = Stopwatch.StartNew();
+    DroneFrame frame = new DroneFrame();
+    DateTime lastFPSTime = DateTime.Now;
+    ulong framesPerSecondCount = 0;
 
-     Stopwatch stopWatch = Stopwatch.StartNew();
-     DroneFrame frame = new DroneFrame();
-     DateTime lastFPSTime = DateTime.Now;
-     ulong framesPerSecondCount = 0;
-
-     while (true) {
-     lock (frame) {
-     // main logic loop
-     frame.Timing_WholeFrame.Start();
-     {
-     RaiseFramePrepareEvent();
+    while (true) {
+    lock (frame) {
+    // main logic loop
+    frame.Timing_WholeFrame.Start();
+    {
+    RaiseFramePrepareEvent();
 
 
-     //_escManager.DurationPercentage = _throttleLevel;
+    //_escManager.DurationPercentage = _throttleLevel;
 
-     float m0 = _throttleLevel;
-     float m1 = _throttleLevel;
-     float m2 = _throttleLevel;
-     float m3 = _throttleLevel;
+    float m0 = _throttleLevel;
+    float m1 = _throttleLevel;
+    float m2 = _throttleLevel;
+    float m3 = _throttleLevel;
 
-     float adjustBase = 0.10f;
-     float pitchAdjust = adjustBase * _elevatorLevel;
-     float rollAdjust = adjustBase * _aileronLevel;
-     float yawAdjust = adjustBase * _rudderLevel;
-     */
+    float adjustBase = 0.10f;
+    float pitchAdjust = adjustBase * _elevatorLevel;
+    float rollAdjust = adjustBase * _aileronLevel;
+    float yawAdjust = adjustBase * _rudderLevel;
+    */
     /*if (_elevatorLevel > 0) {
      mLeft = _throttleLevel;
      mFront = _throttleLevel;

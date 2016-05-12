@@ -4,13 +4,15 @@
 #include "../../eva.h"
 #include "../AgentInterface.h"
 #include "WifiAgentClient.h"
+#include "../../Statistics.h"
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
-#include "utility/socket.h"
 
 // FIXME: make configurable
 #define WIFI_SSID "MCKAY-O"
 #define WIFI_KEY "30292822"
+//#define WIFI_SSID "myschool_wifi"
+//#define WIFI_KEY "letmein2"
 #define WIFI_PORT 2976
 #define WIFI_BUFFER_LENGTH 128
 
@@ -22,6 +24,7 @@
 
 struct BaseMessage;
 struct HelloMessage;
+struct WelcomeMessage;
 
 class WifiAgent : public AgentInterface
 {
@@ -34,6 +37,7 @@ class WifiAgent : public AgentInterface
         byte _buffer[WIFI_BUFFER_LENGTH];
 
     public:
+        void broadcastFrame(const FrameStatistics statistics);
         WifiAgent(const LoggerInterface *logger);
 
         void tick();
@@ -43,15 +47,16 @@ class WifiAgent : public AgentInterface
         void onConnectedAP();
 
         void onHelloMessage(const std::shared_ptr<WifiAgentClient> client,
-                            const HelloMessage *msg,
-                            const IPAddress remoteAddr,
-                            const int remotePort);
+                            const HelloMessage msg,
+                            IPAddress remoteAddr,
+                            int remotePort);
 
         void handleWifi();
-
         void handleNetwork();
 
-        const std::shared_ptr<WifiAgentClient> findClient(const IPAddress addr, const int port) const;
+        void sendWelcome(const std::shared_ptr<WifiAgentClient> client);
+
+        const std::shared_ptr<WifiAgentClient> findClient(const IPAddress address, const int port) const;
 
         BaseMessage createMessage(const byte buffer[WIFI_BUFFER_LENGTH], const int length) const;
 };
@@ -66,7 +71,7 @@ struct BaseMessage
     }
 };
 
-struct HelloMessage : BaseMessage
+struct HelloMessage : public BaseMessage
 {
     unsigned short capabilities;
 

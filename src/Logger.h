@@ -7,9 +7,9 @@
 class Logger : public LoggerInterface
 {
 
-public:
-    void initialize();
-    void writeln(const int channel, const std::string component, const char* fmt, ...) const;
+    public:
+        void initialize();
+        void writeln(const int channel, const std::string component, const char *fmt, ...) const;
 };
 
 #endif /* EVA_LOGGER_H */

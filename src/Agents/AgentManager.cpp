@@ -1,10 +1,10 @@
 #include "AgentManager.h"
 #include "Wifi/WifiAgent.h"
 
-AgentManager::AgentManager(const LoggerInterface* logger)
+AgentManager::AgentManager(const LoggerInterface *logger)
 {
     _logger = logger;
-    _logger->writeln(LOG_INFO, "agent_manager", "agent manager intializing");
+    _logger->writeln(LOG_INFO, "agent_manager", "agent manager initializing");
     _logger->writeln(LOG_INFO, "agent_manager", "...adding wifi agent");
 
     _agents.push_back(std::unique_ptr<WifiAgent>(new WifiAgent(_logger)));
@@ -29,4 +29,11 @@ bool AgentManager::hasActiveClient(const int capabilities) const
     }
 
     return has;
+}
+
+void AgentManager::broadcastFrame(const FrameStatistics frame)
+{
+    for (auto it(_agents.begin()), ite(_agents.end()); it != ite; ++it) {
+        (*it)->broadcastFrame(frame);
+    }
 }
