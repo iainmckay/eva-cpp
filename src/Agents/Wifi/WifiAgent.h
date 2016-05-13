@@ -21,6 +21,7 @@
 #define MSG_WELCOME 2
 #define MSG_PING 3
 #define MSG_PONG 4
+#define MSG_FRAME 5
 
 struct BaseMessage;
 struct HelloMessage;
@@ -54,6 +55,7 @@ class WifiAgent : public AgentInterface
         void handleWifi();
         void handleNetwork();
 
+        void send(const std::shared_ptr<WifiAgentClient> client, const byte *buffer, const int length);
         void sendWelcome(const std::shared_ptr<WifiAgentClient> client);
 
         const std::shared_ptr<WifiAgentClient> findClient(const IPAddress address, const int port) const;

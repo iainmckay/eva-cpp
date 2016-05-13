@@ -18,31 +18,20 @@ class WifiAgentClient : public AgentClientInterface
         const static int DISCONNECT_REASON_VIOLATED_ME = 3;
 
     private:
-        const WifiAgent* _agent;
         int _state;
         IPAddress _addr;
         int _port;
         int _disconnectReason;
+        int _capabilities;
 
     public:
-        WifiAgentClient(const WifiAgent* agent, const IPAddress addr, const int port);
+        WifiAgentClient(const IPAddress addr, const int port, const int capabilities);
 
-        IPAddress getAddress() const
-        {
-            return _addr;
-        }
-
-        int getPort() const
-        {
-            return _port;
-        }
-
-        bool isActive() const
-        {
-            return (_state == STATE_CONNECTED);
-        }
-
+        IPAddress getAddress() const;
+        int getPort() const;
+        bool isActive() const;
         void disconnect(int reason);
+        bool supports(int mask) const;
 };
 
 

@@ -55,21 +55,22 @@ void setup()
 
 void loop()
 {
+    ulong start;
     FrameStatistics frame;
     frame.overhead = timeInTransmitPhase - timeLastFrameEnded;
     frame.start = millis();
 
     ArduinoOTA.handle();
 
-    frame.agentStart = millis();
+    start = millis();
     agentManager->tick();
-    frame.agentEnd = millis();
+    frame.agent = (byte) (millis() - start);
 
-    frame.droneStart = millis();
+    start = millis();
     drone->tick();
-    frame.droneEnd = millis();
+    frame.drone = (byte) (millis() - start);
 
-    frame.end = millis();
+    frame.length = (byte) (millis() - frame.start);
 
     agentManager->broadcastFrame(frame);
 }

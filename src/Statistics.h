@@ -9,11 +9,9 @@ struct FrameStatistics
         // this value holds the time spent in that phase
         ulong overhead;
         ulong start;
-        ulong end;
-        ulong agentStart;
-        ulong agentEnd;
-        ulong droneStart;
-        ulong droneEnd;
+        byte length;
+        byte agent;
+        byte drone;
 };
 
 #endif /* EVA_STATISTICS_H */

@@ -129,9 +129,21 @@ BaseMessage WifiAgent::createMessage(const byte buffer[WIFI_BUFFER_LENGTH], cons
 void WifiAgent::broadcastFrame(const FrameStatistics statistics)
 {
     for (auto it(_clients.begin()), ite(_clients.end()); it != ite; ++it) {
-        if ((*it)->isActive() == false) {
+        if (((*it)->isActive() == false) && ((*it)->supports(CAP_TELEMETRY) == true)) {
             continue;
         }
+
+        byte buffer[8];
+        buffer[0] = MSG_FRAME;
+        buffer[1] = (byte) ((statistics.start >> 24) & 0xFF);
+        buffer[2] = (byte) ((statistics.start >> 16) & 0xFF);
+        buffer[3] = (byte) ((statistics.start >> 8) & 0XFF);
+        buffer[4] = (byte) (statistics.start & 0XFF);
+        buffer[5] = statistics.length;
+        buffer[6] = statistics.agent;
+        buffer[7] = statistics.drone;
+
+        send((*it), buffer, 8);
     }
 }
 
@@ -143,7 +155,7 @@ void WifiAgent::onHelloMessage(const std::shared_ptr<WifiAgentClient> client,
     if (client != nullptr) {
         client->disconnect(WifiAgentClient::DISCONNECT_REASON_VIOLATED_ME);
     } else {
-        WifiAgentClient *ptr = new WifiAgentClient(this, remoteAddr, remotePort);
+        WifiAgentClient *ptr = new WifiAgentClient(remoteAddr, remotePort, msg.capabilities);
         std::shared_ptr<WifiAgentClient> newClient = std::shared_ptr<WifiAgentClient>(ptr);
 
         _clients.push_back(newClient);
@@ -158,8 +170,13 @@ void WifiAgent::sendWelcome(const std::shared_ptr<WifiAgentClient> client)
     byte buffer[1];
     buffer[0] = MSG_WELCOME;
 
+    send(client, buffer, 1);
+}
+
+void WifiAgent::send(const std::shared_ptr<WifiAgentClient> client, const byte *buffer, const int length)
+{
     _socket.beginPacket(client->getAddress(), client->getPort());
-    _socket.write(buffer, sizeof(buffer));
+    _socket.write(buffer, length);
     _socket.endPacket();
 }
 
