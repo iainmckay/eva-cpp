@@ -7,10 +7,10 @@ class SpeedController
 {
 private:
     uint _pin;
-    uint _amount;
     uint _minRange;
     uint _maxRange;
     uint _armingTime;
+    float _amount;
 
     ulong _armingTimer;
     bool _armed;
@@ -20,9 +20,10 @@ public:
 
     void changeSpeed(const float value);
     void tick();
+    const float getSpeed();
 
 private:
-    uint map(const float value) const;
+    const uint map(const float value) const;
 };
 
 #endif /* EVA_HARDWARE_SPEEDCONTROLLERS_MYSTERY_MYSTERYSPEEDCONTROLLER_H */

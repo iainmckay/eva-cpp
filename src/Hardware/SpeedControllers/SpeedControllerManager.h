@@ -18,9 +18,12 @@ private:
 public:
     SpeedControllerManager();
 
-    void adjustSpeed(uint index, float amount);
+    void adjustSpeed(const uint index, const float amount);
     void arm();
     void tick();
+
+    const uint getControllerCount();
+    const float getControllerSpeed(const uint index);
 };
 
 #endif /* EVA_HARDWARE_SPEEDCONTROLLERS_SPEEDCONTROLLERMANAGER_H */

@@ -57,7 +57,7 @@ void loop()
 {
     ulong start;
     FrameStatistics frame;
-    frame.overhead = timeInTransmitPhase - timeLastFrameEnded;
+    frame.overhead = (byte) timeInTransmitPhase - timeLastFrameEnded;
     frame.start = millis();
 
     ArduinoOTA.handle();
@@ -72,5 +72,17 @@ void loop()
 
     frame.length = (byte) (millis() - frame.start);
 
-    agentManager->broadcastFrame(frame);
+    frame.motorCount = (byte) drone->getMotorCount();
+
+    for (uint i = 0; i < frame.motorCount; i++) {
+        frame.motorLevels[i] = (byte) (drone->getMotorSpeed(i) * 100);
+    }
+
+    timeLastFrameEnded = millis();
+
+    //agentManager->broadcastFrame(frame);
+
+    delay(12);
+
+    timeInTransmitPhase =  millis();
 }

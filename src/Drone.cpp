@@ -96,3 +96,13 @@ void Drone::tick()
      RaiseFrameCompleteEvent(frame);
      }*/
 }
+
+const uint Drone::getMotorCount()
+{
+    return _escManager->getControllerCount();
+}
+
+const float Drone::getMotorSpeed(const uint index)
+{
+    return _escManager->getControllerSpeed(index);
+}

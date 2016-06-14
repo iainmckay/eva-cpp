@@ -13,7 +13,7 @@ void SpeedControllerManager::arm()
     _enabled = true;
 }
 
-void SpeedControllerManager::adjustSpeed(uint index, float amount)
+void SpeedControllerManager::adjustSpeed(const uint index, const float amount)
 {
     _speedControllers[index].changeSpeed(amount);
 }
@@ -29,4 +29,14 @@ void SpeedControllerManager::tick()
     for (uint i = 0; i < _speedControllerCount; i++) {
         _speedControllers[i].tick();
     }
+}
+
+const uint SpeedControllerManager::getControllerCount()
+{
+    return _speedControllerCount;
+}
+
+const float SpeedControllerManager::getControllerSpeed(const uint index)
+{
+    return _speedControllers[index].getSpeed();
 }

@@ -1,5 +1,4 @@
 #include "WifiAgent.h"
-#include "../../Statistics.h"
 
 WifiAgent::WifiAgent(const LoggerInterface *logger) :
         _status(WL_IDLE_STATUS)
@@ -133,24 +132,35 @@ void WifiAgent::broadcastFrame(const FrameStatistics statistics)
             continue;
         }
 
-        byte buffer[8];
+        uint bufferLength = (uint) (10 + (statistics.motorCount * 2));
+        byte buffer[bufferLength];
         buffer[0] = MSG_FRAME;
-        buffer[1] = (byte) ((statistics.start >> 24) & 0xFF);
-        buffer[2] = (byte) ((statistics.start >> 16) & 0xFF);
-        buffer[3] = (byte) ((statistics.start >> 8) & 0XFF);
-        buffer[4] = (byte) (statistics.start & 0XFF);
-        buffer[5] = statistics.length;
-        buffer[6] = statistics.agent;
-        buffer[7] = statistics.drone;
+        buffer[1] = statistics.overhead;
+        buffer[2] = (byte) ((statistics.start >> 24) & 0xFF);
+        buffer[3] = (byte) ((statistics.start >> 16) & 0xFF);
+        buffer[4] = (byte) ((statistics.start >> 8) & 0XFF);
+        buffer[5] = (byte) (statistics.start & 0XFF);
+        buffer[6] = statistics.length;
+        buffer[7] = statistics.agent;
+        buffer[8] = statistics.drone;
+        buffer[9] = statistics.motorCount;
 
-        send((*it), buffer, 8);
+        for (uint i = 0; i < statistics.motorCount; i++) {
+            buffer[10 + i] = statistics.motorStatus[i];
+        }
+
+        for (uint i = 0; i < statistics.motorCount; i++) {
+            buffer[10 + statistics.motorCount + i] = statistics.motorLevels[i];
+        }
+
+        send((*it), buffer, bufferLength);
     }
 }
 
 void WifiAgent::onHelloMessage(const std::shared_ptr<WifiAgentClient> client,
                                const HelloMessage msg,
                                IPAddress remoteAddr,
-                               int remotePort)
+                               const int remotePort)
 {
     if (client != nullptr) {
         client->disconnect(WifiAgentClient::DISCONNECT_REASON_VIOLATED_ME);

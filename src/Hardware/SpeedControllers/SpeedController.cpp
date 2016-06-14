@@ -33,7 +33,12 @@ void SpeedController::tick()
     analogWrite(_pin, value);
 }
 
-uint SpeedController::map(const float value) const
+const uint SpeedController::map(const float value) const
 {
     return (uint) (((_maxRange - _minRange) * value) + _minRange);
+}
+
+const float SpeedController::getSpeed()
+{
+    return _amount;
 }

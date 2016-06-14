@@ -21,6 +21,9 @@ class Drone
 
         void setInputLevels(const float throttle, const float yaw, const float pitch, const float roll);
         void tick();
+
+        const uint getMotorCount();
+        const float getMotorSpeed(const uint index);
 };
 
 #endif /* EVA_DRONE_H */
