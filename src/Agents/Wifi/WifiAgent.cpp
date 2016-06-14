@@ -86,8 +86,8 @@ void WifiAgent::handleNetwork()
 
         if (msg.type == MSG_HELLO) {
             onHelloMessage(client, static_cast<HelloMessage &>(msg), remoteAddr, remotePort);
-        } else {
-
+        } else if (msg.type == MSG_INPUT) {
+            onInputMessage(client, static_cast<InputMessage &>(msg), remoteAddr, remotePort);
         }
     }
 }
@@ -98,23 +98,42 @@ BaseMessage WifiAgent::createMessage(const byte buffer[WIFI_BUFFER_LENGTH], cons
 
     switch (msgId) {
         case MSG_HELLO: {
-            HelloMessage msg;
+            HelloMessage helloMsg;
 
-            if (msg.expectedSize() == length) {
-                memcpy(&msg, &buffer, length);
-                msg.type = buffer[0];
-                msg.capabilities = (buffer[1] << 8) + buffer[2];
+            if (helloMsg.expectedSize() == length) {
+                helloMsg.type = buffer[0];
+                helloMsg.capabilities = (buffer[1] << 8) + buffer[2];
 
-                return msg;
+                return helloMsg;
             } else {
                 _logger->writeln(LOG_WARNING,
                                  "agent.wifi",
                                  "got hello message of wrong length [%d received, %d expected]",
                                  length,
-                                 msg.expectedSize());
+                                 helloMsg.expectedSize());
             }
         }
             break;
+
+        case MSG_INPUT: {
+            InputMessage inputMsg;
+
+            if (inputMsg.expectedSize() == length) {
+                inputMsg.type = buffer[0];
+                inputMsg.throttleLevel = (int) buffer[1] / 100.0f;
+                inputMsg.yawLevel = buffer[1];
+                inputMsg.pitchLevel = 2;//buffer[3];
+                inputMsg.rollLevel = buffer[4];
+
+                return inputMsg;
+            } else {
+                _logger->writeln(LOG_WARNING,
+                                 "agent.wifi",
+                                 "got input message of wrong length [%d received, %d expected]",
+                                 length,
+                                 inputMsg.expectedSize());
+            }
+        }
 
         default:
             _logger->writeln(LOG_WARNING, "agent.wifi", "unknown message");
@@ -172,6 +191,22 @@ void WifiAgent::onHelloMessage(const std::shared_ptr<WifiAgentClient> client,
         _logger->writeln(LOG_INFO, "agent.wifi", "client connected [%s:%d]", remoteAddr.toString().c_str(), remotePort);
 
         sendWelcome(newClient);
+    }
+}
+
+void WifiAgent::onInputMessage(const std::shared_ptr<WifiAgentClient> client,
+                               const InputMessage msg,
+                               IPAddress remoteAddr,
+                               const int remotePort)
+{
+    if (client != nullptr) {
+        if (msg.throttleLevel == 0.5f) {
+            _logger->writeln(LOG_INFO, "agent.wifi", "throttle is half");
+        } else if (msg.yawLevel == 50) {
+            _logger->writeln(LOG_INFO,
+                             "agent.wifi",
+                             "second throttle is half");
+        }
     }
 }
 

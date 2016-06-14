@@ -22,9 +22,11 @@
 #define MSG_PING 3
 #define MSG_PONG 4
 #define MSG_FRAME 5
+#define MSG_INPUT 6
 
 struct BaseMessage;
 struct HelloMessage;
+struct InputMessage;
 struct WelcomeMessage;
 
 class WifiAgent : public AgentInterface
@@ -50,7 +52,12 @@ class WifiAgent : public AgentInterface
         void onHelloMessage(const std::shared_ptr<WifiAgentClient> client,
                             const HelloMessage msg,
                             IPAddress remoteAddr,
-                            int remotePort);
+                            const int remotePort);
+
+        void onInputMessage(const std::shared_ptr<WifiAgentClient> client,
+                            const InputMessage msg,
+                            IPAddress remoteAddr,
+                            const int remotePort);
 
         void handleWifi();
         void handleNetwork();
@@ -80,6 +87,19 @@ struct HelloMessage : public BaseMessage
     int expectedSize() const
     {
         return 3;
+    }
+};
+
+struct InputMessage : public BaseMessage
+{
+    float throttleLevel;
+    byte yawLevel;
+    float pitchLevel;
+    float rollLevel;
+
+    int expectedSize() const
+    {
+        return 5;
     }
 };
 
