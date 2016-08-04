@@ -2,6 +2,7 @@
 #define EVA_AGENTS_WIFI_WIFIAGENT_H
 
 #include "../../eva.h"
+#include "../../InputFrame.h"
 #include "../AgentInterface.h"
 #include "WifiAgentClient.h"
 #include "../../Statistics.h"
@@ -39,12 +40,15 @@ class WifiAgent : public AgentInterface
         WiFiUDP _socket;
         byte _buffer[WIFI_BUFFER_LENGTH];
 
+        InputFrame _inputFrame;
+
     public:
         void broadcastFrame(const FrameStatistics statistics);
         WifiAgent(const LoggerInterface *logger);
 
         void tick();
         bool hasActiveClient(const int capabilities) const;
+        InputFrame getInputFrame() const;
 
     private:
         void onConnectedAP();
@@ -66,8 +70,6 @@ class WifiAgent : public AgentInterface
         void sendWelcome(const std::shared_ptr<WifiAgentClient> client);
 
         const std::shared_ptr<WifiAgentClient> findClient(const IPAddress address, const int port) const;
-
-        BaseMessage createMessage(const byte buffer[WIFI_BUFFER_LENGTH], const int length) const;
 };
 
 struct BaseMessage
@@ -92,10 +94,10 @@ struct HelloMessage : public BaseMessage
 
 struct InputMessage : public BaseMessage
 {
-    float throttleLevel;
-    byte yawLevel;
-    float pitchLevel;
-    float rollLevel;
+    float throttleLevel = 0;
+    float yawLevel = 0;
+    float pitchLevel = 0;
+    float rollLevel = 0;
 
     int expectedSize() const
     {

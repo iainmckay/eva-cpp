@@ -5,7 +5,7 @@ SpeedControllerManager::SpeedControllerManager()
     _speedControllerCount = 4;
 
     analogWriteFreq(50);
-    analogWriteRange(20000);
+    analogWriteRange(1000);
 }
 
 void SpeedControllerManager::arm()
@@ -39,4 +39,9 @@ const uint SpeedControllerManager::getControllerCount()
 const float SpeedControllerManager::getControllerSpeed(const uint index)
 {
     return _speedControllers[index].getSpeed();
+}
+
+const int SpeedControllerManager::getControllerStatus(const uint index)
+{
+    return _speedControllers[index].getStatus();
 }

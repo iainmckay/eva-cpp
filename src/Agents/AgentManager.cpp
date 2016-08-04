@@ -12,8 +12,11 @@ AgentManager::AgentManager(const LoggerInterface *logger)
 
 void AgentManager::tick()
 {
+    // TODO: mixing
+
     for (auto it(_agents.begin()), ite(_agents.end()); it != ite; ++it) {
         (*it)->tick();
+        _inputFrame = (*it)->getInputFrame();
     }
 }
 
@@ -29,6 +32,11 @@ bool AgentManager::hasActiveClient(const int capabilities) const
     }
 
     return has;
+}
+
+InputFrame AgentManager::getInputFrame() const
+{
+    return _inputFrame;
 }
 
 void AgentManager::broadcastFrame(const FrameStatistics frame)

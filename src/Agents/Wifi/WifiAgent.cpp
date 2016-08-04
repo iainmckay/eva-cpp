@@ -21,6 +21,11 @@ bool WifiAgent::hasActiveClient(const int capabilities) const
     return false;
 }
 
+InputFrame WifiAgent::getInputFrame() const
+{
+    return _inputFrame;
+}
+
 void WifiAgent::tick()
 {
     //cleanupDisconnectedClients();
@@ -76,35 +81,26 @@ void WifiAgent::handleNetwork()
         return;
     }
 
-    if (_socket.parsePacket() > 0) {
-        int length = _socket.read(_buffer, WIFI_BUFFER_LENGTH);
-        IPAddress remoteAddr = _socket.remoteIP();
-        int remotePort = _socket.remotePort();
-        const std::shared_ptr<WifiAgentClient> client = findClient(remoteAddr, remotePort);
-
-        BaseMessage msg = createMessage(_buffer, length);
-
-        if (msg.type == MSG_HELLO) {
-            onHelloMessage(client, static_cast<HelloMessage &>(msg), remoteAddr, remotePort);
-        } else if (msg.type == MSG_INPUT) {
-            onInputMessage(client, static_cast<InputMessage &>(msg), remoteAddr, remotePort);
-        }
+    if (_socket.parsePacket() == 0) {
+        return;
     }
-}
 
-BaseMessage WifiAgent::createMessage(const byte buffer[WIFI_BUFFER_LENGTH], const int length) const
-{
-    int msgId = buffer[0];
+    int length = _socket.read(_buffer, WIFI_BUFFER_LENGTH);
+    IPAddress remoteAddr = _socket.remoteIP();
+    int remotePort = _socket.remotePort();
+    const std::shared_ptr<WifiAgentClient> client = findClient(remoteAddr, remotePort);
+
+    byte msgId = _buffer[0];
 
     switch (msgId) {
         case MSG_HELLO: {
             HelloMessage helloMsg;
 
             if (helloMsg.expectedSize() == length) {
-                helloMsg.type = buffer[0];
-                helloMsg.capabilities = (buffer[1] << 8) + buffer[2];
+                helloMsg.type = msgId;
+                helloMsg.capabilities = (ushort) ((_buffer[1] << 8) + _buffer[2]);
 
-                return helloMsg;
+                onHelloMessage(client, helloMsg, remoteAddr, remotePort);
             } else {
                 _logger->writeln(LOG_WARNING,
                                  "agent.wifi",
@@ -119,13 +115,13 @@ BaseMessage WifiAgent::createMessage(const byte buffer[WIFI_BUFFER_LENGTH], cons
             InputMessage inputMsg;
 
             if (inputMsg.expectedSize() == length) {
-                inputMsg.type = buffer[0];
-                inputMsg.throttleLevel = (int) buffer[1] / 100.0f;
-                inputMsg.yawLevel = buffer[1];
-                inputMsg.pitchLevel = 2;//buffer[3];
-                inputMsg.rollLevel = buffer[4];
+                inputMsg.type = msgId;
+                inputMsg.throttleLevel = _buffer[1] / 100.0f;
+                inputMsg.yawLevel = _buffer[2] / 100.0f;
+                inputMsg.pitchLevel = _buffer[3] / 100.0f;
+                inputMsg.rollLevel = _buffer[4] / 100.0f;
 
-                return inputMsg;
+                onInputMessage(client, inputMsg, remoteAddr, remotePort);
             } else {
                 _logger->writeln(LOG_WARNING,
                                  "agent.wifi",
@@ -134,14 +130,12 @@ BaseMessage WifiAgent::createMessage(const byte buffer[WIFI_BUFFER_LENGTH], cons
                                  inputMsg.expectedSize());
             }
         }
+            break;
 
         default:
-            _logger->writeln(LOG_WARNING, "agent.wifi", "unknown message");
+            _logger->writeln(LOG_WARNING, "agent.wifi", "unknown message: %d", msgId);
             break;
     }
-
-    BaseMessage msg;
-    return msg;
 }
 
 void WifiAgent::broadcastFrame(const FrameStatistics statistics)
@@ -200,13 +194,11 @@ void WifiAgent::onInputMessage(const std::shared_ptr<WifiAgentClient> client,
                                const int remotePort)
 {
     if (client != nullptr) {
-        if (msg.throttleLevel == 0.5f) {
-            _logger->writeln(LOG_INFO, "agent.wifi", "throttle is half");
-        } else if (msg.yawLevel == 50) {
-            _logger->writeln(LOG_INFO,
-                             "agent.wifi",
-                             "second throttle is half");
-        }
+        // TODO: mixing
+        _inputFrame.throttle = msg.throttleLevel;
+        _inputFrame.yaw = msg.yawLevel;
+        _inputFrame.pitch = msg.pitchLevel;
+        _inputFrame.roll = msg.rollLevel;
     }
 }
 

@@ -57,4 +57,4 @@ add_executable(eva-cpp
     src/Agents/AgentManager.cpp
     src/Agents/Wifi/WifiAgentClient.cpp
     src/Agents/Wifi/WifiAgent.cpp
-)
+        src/InputFrame.h)

@@ -4,13 +4,6 @@ Drone::Drone(const LoggerInterface *logger)
         : _escManager(new SpeedControllerManager())
 {
     _logger = logger;
-    _logger->writeln(LOG_INFO, "drone", "attaching 4 speed controllers");
-
-    //_escManager.attach(0, 16);
-    /*  _escManager.attach(1, 14);
-      _escManager.attach(2, 12);
-      _escManager.attach(3, 13);
-  */
     _logger->writeln(LOG_INFO, "drone", "arming speed controllers");
 
     _escManager->arm();
@@ -22,26 +15,15 @@ void Drone::setInputLevels(const float throttle, const float yaw, const float pi
     _yawLevel = constrain(yaw, 0.0f, 1.0f);
     _pitchLevel = constrain(pitch, 0.0f, 1.0f);
     _rollLevel = constrain(roll, 0.0f, 1.0f);
+    _throttleLevel = constrain(1, 0.0f, 1.0f);
+    _yawLevel = constrain(1, 0.0f, 1.0f);
+    _pitchLevel = constrain(1, 0.0f, 1.0f);
+    _rollLevel = constrain(1, 0.0f, 1.0f);
 }
 
-void Drone::tick()
+void Drone::tick(const InputFrame inputFrame)
 {
-    /*Debug.Print("Entering running state");
-
-    Stopwatch stopWatch = Stopwatch.StartNew();
-    DroneFrame frame = new DroneFrame();
-    DateTime lastFPSTime = DateTime.Now;
-    ulong framesPerSecondCount = 0;
-
-    while (true) {
-    lock (frame) {
-    // main logic loop
-    frame.Timing_WholeFrame.Start();
-    {
-    RaiseFramePrepareEvent();
-
-
-    //_escManager.DurationPercentage = _throttleLevel;
+    setInputLevels(inputFrame.throttle, inputFrame.yaw, inputFrame.pitch, inputFrame.roll);
 
     float m0 = _throttleLevel;
     float m1 = _throttleLevel;
@@ -49,10 +31,10 @@ void Drone::tick()
     float m3 = _throttleLevel;
 
     float adjustBase = 0.10f;
-    float pitchAdjust = adjustBase * _elevatorLevel;
-    float rollAdjust = adjustBase * _aileronLevel;
-    float yawAdjust = adjustBase * _rudderLevel;
-    */
+    float pitchAdjust = adjustBase * _pitchLevel;
+    float rollAdjust = adjustBase * _rollLevel;
+    float yawAdjust = adjustBase * _yawLevel;
+
     /*if (_elevatorLevel > 0) {
      mLeft = _throttleLevel;
      mFront = _throttleLevel;
@@ -65,36 +47,22 @@ void Drone::tick()
      mRight = _throttleLevel;
      }*/
 
-    /* m0 = _throttleLevel - pitchAdjust - rollAdjust - yawAdjust;
+     m0 = _throttleLevel - pitchAdjust - rollAdjust - yawAdjust;
      m1 = _throttleLevel - pitchAdjust + rollAdjust + yawAdjust;
      m2 = _throttleLevel + pitchAdjust + rollAdjust - yawAdjust;
      m3 = _throttleLevel + pitchAdjust - rollAdjust + yawAdjust;
+m0=1;
+m1=1;
+m2=1;
+m3=1;
+    //_logger->writeln(LOG_INFO, "drone", "m0=%d m1=%d m2=%d m3=%d", m0 * 100, m1 * 100, m2 * 100, m3 * 100);
 
-     if ((DateTime.Now - lastFPSTime).Ticks >= TimeSpan.TicksPerSecond) {
-     Debug.Print("0=" + m0.ToString() + " 1=" + m1.ToString() + " 2=" + m2.ToString() + " 3=" + m3.ToString() + " P=" + pitchAdjust.ToString() + " R=" + rollAdjust.ToString() + " Y=" + yawAdjust.ToString() + " AL=" + _aileronLevel.ToString() + " RL=" + _rudderLevel.ToString() + " EL=" + _elevatorLevel.ToString());
-     }
-     //Debug.Print("0=" + m0.ToString() + " 1=" + m1.ToString() + " 2=" + m2.ToString() + " 3=" + m3.ToString());
-     //Debug.Print("0=" + m0.ToString() + " 1=" + m1.ToString() + " 2=" + m2.ToString() + " 3=" + m3.ToString());
-     _escManager._speedControllers[0].SpeedAmount = m0;
-     _escManager._speedControllers[1].SpeedAmount = m1;
-     _escManager._speedControllers[2].SpeedAmount = m2;
-     _escManager._speedControllers[3].SpeedAmount = m3;
+    _escManager->adjustSpeed(0, m0);
+    _escManager->adjustSpeed(1, m1);
+    _escManager->adjustSpeed(2, m2);
+    _escManager->adjustSpeed(3, m3);
 
-     frame.Stats_FrameCount++;
-     }
-     frame.Timing_WholeFrame.Stop();
-
-     // calculate fps
-     if ((DateTime.Now - lastFPSTime).Ticks >= TimeSpan.TicksPerSecond) {
-     frame.Stats_FramesPerSecond = (ushort) (frame.Stats_FrameCount - framesPerSecondCount);
-     framesPerSecondCount = frame.Stats_FrameCount;
-     lastFPSTime = DateTime.Now;
-     }
-     }
-
-     // let other sections of the code handle the results from a frame
-     RaiseFrameCompleteEvent(frame);
-     }*/
+    _escManager->tick();
 }
 
 const uint Drone::getMotorCount()
@@ -105,4 +73,9 @@ const uint Drone::getMotorCount()
 const float Drone::getMotorSpeed(const uint index)
 {
     return _escManager->getControllerSpeed(index);
+}
+
+const int Drone::getMotorStatus(const uint index)
+{
+    return _escManager->getControllerStatus(index);
 }
